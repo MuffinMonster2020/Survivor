@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><title>SURVIVOR 50: Season of Legends</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --vatu: rgba(46,125,50,0.45); --cila: rgba(21,101,192,0.45); --kalo: rgba(106,27,154,0.45); --gold: #ffc107; --dark: #0b140d; --jury: rgba(101,67,33,0.6); }
+        body { background: var(--dark); background-image: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('https://www.transparenttextures.com/patterns/dark-wood.png'); color: #f5f5f5; font-family: 'Roboto', sans-serif; margin: 0; padding: 20px; perspective: 1200px; }
+        header { text-align: center; margin-bottom: 20px; }
+        .logo-container { max-width: 400px; margin: 0 auto; cursor: pointer; border: 2px dashed var(--gold); border-radius: 10px; padding: 10px; }
+        .main-logo { width: 100%; height: auto; display: block; }
+        .save-bar { text-align: center; margin-bottom: 20px; position: sticky; top: 10px; z-index: 2000; }
+        .save-btn { background: var(--gold); border: 2px solid #000; padding: 12px 24px; font-weight: 900; border-radius: 50px; cursor: pointer; font-family: 'Montserrat'; box-shadow: 0 4px 15px rgba(255,193,7,0.4); }
+        .draft-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 1400px; margin: 0 auto; }
+        .team-card { background: rgba(15,15,15,0.95); border-radius: 12px; border-top: 6px solid var(--gold); display: flex; flex-direction: column; min-height: 150px; margin-bottom: 20px; }
+        .team-owner { background: rgba(0,0,0,0.7); padding: 12px; text-align: center; font-family: 'Montserrat'; font-weight: 900; color: var(--gold); }
+        .player-list, .drop-list { flex-grow: 1; padding: 15px; min-height: 100px; }
+        .player-row { margin-bottom: 12px; height: 95px; position: relative; transform-style: preserve-3d; transition: transform 0.6s; cursor: grab; }
+        .player-row.flipping { transform: rotateY(180deg); }
+        
+        /* Removed Hover Flip logic from here */
+
+        .card-front, .card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 10px; display: flex; align-items: center; padding: 0 12px; box-sizing: border-box; }
+        .card-front { display: grid; grid-template-columns: 60px 1fr auto; border: 1px solid rgba(255,255,255,0.1); }
+        .card-back { background: #1a1a1a; transform: rotateY(180deg); flex-direction: column; justify-content: center; border: 2px solid var(--gold); }
+        .row-vatu .card-front { background: var(--vatu); border-left: 5px solid #4caf50; }
+        .row-cila .card-front { background: var(--cila); border-left: 5px solid #2196f3; }
+        .row-kalo .card-front { background: var(--kalo); border-left: 5px solid #9c27b0; }
+        .player-img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid white; cursor: pointer; }
+        .controls { display: flex; gap: 8px; align-items: center; }
+        .icon-toggle { cursor: pointer; font-size: 1.1rem; opacity: 0.2; filter: grayscale(1); position: relative; }
+        .icon-toggle.active { opacity: 1; filter: grayscale(0); }
+        .icon-toggle:hover::after { content: attr(data-tip); position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%); background: #000; padding: 4px; border: 1px solid var(--gold); font-size: 0.6rem; z-index: 10; white-space: nowrap; }
+        .card-back textarea { background: rgba(255,255,255,0.05); color: white; border: none; width: 95%; height: 50px; font-size: 0.7rem; text-align: center; margin-top: 5px;}
+        .section-container { margin-top: 30px; padding: 15px; border-radius: 15px; text-align: center; }
+        .winner-zone { border: 3px solid var(--gold); background: rgba(255,193,7,0.1); max-width: 450px; margin: 0 auto; box-shadow: 0 0 20px var(--gold); }
+        .jury-zone { background: var(--jury); border: 2px solid #8d6e63; }
+        .graveyard-zone { background: rgba(0,0,0,0.4); border: 2px dashed #444; }
+        @media (max-width: 1000px) { .draft-board { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body onload="build()">
+<header>
+    <div class="logo-container" onclick="document.getElementById('lin').click()">
+        <img id="hlog" src="https://via.placeholder.com/400x120?text=CLICK+TO+UPLOAD+LOGO" class="main-logo">
+        <input type="file" id="lin" style="display:none" onchange="hIm(this)">
+    </div>
+</header>
+<div class="save-bar"><button class="save-btn" onclick="sv()">📥 DOWNLOAD UPDATED BOARD</button></div>
+<main class="draft-board">
+    <div class="team-card" ondragover="av(event)" ondrop="dp(event)"><div class="team-owner">MARIBETH</div><div class="player-list" id="ml"></div></div>
+    <div class="team-card" ondragover="av(event)" ondrop="dp(event)"><div class="team-owner">ANI</div><div class="player-list" id="nl"></div></div>
+    <div class="team-card" ondragover="av(event)" ondrop="dp(event)"><div class="team-owner">BRANDON</div><div class="player-list" id="bl"></div></div>
+    <div class="team-card" ondragover="av(event)" ondrop="dp(event)"><div class="team-owner">SUSY</div><div class="player-list" id="sl"></div></div>
+    <div class="team-card" ondragover="av(event)" ondrop="dp(event)"><div class="team-owner">ALI</div><div class="player-list" id="al"></div></div>
+    <div class="team-card" ondragover="av(event)" ondrop="dp(event)"><div class="team-owner">SHELDON</div><div class="player-list" id="hl"></div></div>
+</main>
+<div class="section-container winner-zone"><h2>👑 SOLE SURVIVOR 👑</h2><div id="winner-list" class="drop-list" ondragover="av(event)" ondrop="dp(event)"></div></div>
+<div class="section-container jury-zone"><h2>⚖️ JURY ⚖️</h2><div id="jury-list" class="drop-list" ondragover="av(event)" ondrop="dp(event)"></div></div>
+<div class="section-container graveyard-zone"><h2>💀 GRAVEYARD 💀</h2><div id="graveyard-list" class="drop-list" ondragover="av(event)" ondrop="dp(event)"></div></div>
+
+<script>
+    const cast = {
+        "ml": [{n:"Angelina Keeley",t:"vatu"},{n:"Dee Valladares",t:"kalo"},{n:"Rizo Velovic",t:"vatu"},{n:"Charlie Davis",t:"kalo"}],
+        "nl": [{n:"Emily Flippen",t:"cila"},{n:"Cirie Fields",t:"cila"},{n:"Mike White",t:"kalo"},{n:"Aubry Bracco",t:"vatu"}],
+        "bl": [{n:"Tiffany Ervin",t:"kalo"},{n:"Coach Wade",t:"kalo"},{n:"Kamilla Karthigesu",t:"kalo"},{n:"Ozzy Lusth",t:"cila"}],
+        "sl": [{n:"Savannah Louie",t:"cila"},{n:"Jonathan Young",t:"kalo"},{n:"Kyle Fraser",t:"vatu"},{n:"Genevieve Mushaluk",t:"vatu"}],
+        "al": [{n:"Stephenie LaGrossa",t:"vatu"},{n:"Rick Devens",t:"cila"},{n:"Jenna Lewis",t:"cila"},{n:"Chrissy Hofbeck",t:"kalo"}],
+        "hl": [{n:"Q Burdette",t:"vatu"},{n:"Joe Hunter",t:"cila"},{n:"Colby Donaldson",t:"vatu"},{n:"Christian Hubicki",t:"cila"}]
+    };
+
+    function build() {
+        if (document.querySelector('.player-row')) return;
+        let i = 0;
+        for (const [id, ps] of Object.entries(cast)) {
+            ps.forEach(p => {
+                i++; const r = document.createElement('div'); r.className = `player-row row-${p.t}`; r.id = `r-${i}`; r.draggable = true; 
+                r.ondragstart = e => e.dataTransfer.setData("text", e.target.id);
+                r.innerHTML = `<div class="card-front"><img src="https://ui-avatars.com/api/?name=${encodeURIComponent(p.n)}" class="player-img" onclick="document.getElementById('f-${i}').click()"><input type="file" id="f-${i}" style="display:none" onchange="pIm(this)"><div class="player-info"><span class="player-name">${p.n}</span></div><div class="controls">
+                <span class="icon-toggle" data-tip="Team Immunity" onclick="tS(this)">🟫</span><span class="icon-toggle" data-tip="Indiv Immunity" onclick="tS(this)">📿</span><span class="icon-toggle" data-tip="Idol" onclick="tS(this)">🗿</span><span class="icon-toggle" data-tip="Advantage" onclick="tS(this)">📜</span><span class="icon-toggle active" data-tip="Torch" onclick="tT(this)">🔥</span><span class="icon-toggle active" data-tip="Notes" onclick="fC(this)">🎴</span></div></div>
+                <div class="card-back"><span class="icon-toggle active" style="align-self: flex-end; margin-bottom: 5px;" data-tip="Flip Back" onclick="fC(this)">🎴</span><textarea placeholder="Notes..."></textarea></div>`;
+                document.getElementById(id).appendChild(r);
+            });
+        }
+    }
+
+    function hIm(n){if(n.files[0]){const r=new FileReader();r.onload=e=>document.getElementById('hlog').src=e.target.result;r.readAsDataURL(n.files[0])}}
+    function pIm(n){if(n.files[0]){const r=new FileReader();r.onload=e=>n.previousElementSibling.src=e.target.result;r.readAsDataURL(n.files[0])}}
+    function fC(e){e.closest('.player-row').classList.toggle('flipping')}
+    function tS(e){e.classList.toggle('active')}
+    function tT(e){const r=e.closest('.player-row');r.classList.toggle('snuffed');e.innerText=r.classList.contains('snuffed')?'💨':'🔥';e.classList.toggle('active')}
+    function av(e){e.preventDefault()}
+    function dp(e){e.preventDefault();const t=e.target.closest('.drop-list')||e.target.closest('.player-list');if(t)t.appendChild(document.getElementById(e.dataTransfer.getData("text")))}
+    function sv(){
+        document.querySelectorAll('textarea').forEach(t=>t.innerHTML=t.value);
+        document.querySelectorAll('img').forEach(i=>{if(i.src.startsWith('data:image'))i.setAttribute('src',i.src)});
+        const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([document.documentElement.outerHTML],{type:"text/html"}));a.download="Survivor_Master_Final.html";a.click();
+    }
+</script>
+</body>
+</html>
